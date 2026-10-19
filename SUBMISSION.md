@@ -84,9 +84,7 @@ Open-source AI and open-weight models fundamentally change what is possible for 
 
 ## My Agent Session
 
-This project was built and audited using **Google Antigravity** paired with **DevRelay**.
-
-{% agent_session 8e448854-cb9b-41b8-a8d7-482995e1430c %}
+This project was built and audited with the help of **Google Antigravity** AI assistant.
 
 The agent pair-programming workflow was used to:
 - Formulate the dual-tier architecture (Ollama open-weight bridge + deterministic browser tax engine).
