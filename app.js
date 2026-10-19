@@ -814,7 +814,7 @@ function exportVaultJson() {
 function renderSubmissionDraft() {
   const markdown = `---
 title: "LedgerVault AI: Privacy-First Expense & Tax Auditor for Freelancers"
-published: false
+published: true
 tags: devchallenge, hf26challenge
 ---
 
@@ -850,7 +850,7 @@ The monetization model is a classic indie-hacker utility:
 ## Demo
 
 - **Live Demo / Deployed Link**: [https://farrosilman.github.io/LedgerVault/](https://farrosilman.github.io/LedgerVault/)
-- **Video Walkthrough**: [INSERT PUBLIC VIDEO DEMO URL]
+- **Video Walkthrough**: *(Interactive live web demo available at the link above; video demonstration available upon request)*
 
 ### Interactive Walkthrough Highlights
 1. **Zero-CDN Isolated Dashboard**: Open the application—notice zero remote network requests, instant loading, and local vector icons.
