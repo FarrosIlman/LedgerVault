@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LedgerVault AI — A Local-First Receipt & Invoice Auditor for Freelancers</title>
+  <meta name="description" content="Local-first expense and invoice auditor for freelancers. Extracts line items, categorizes IRS Schedule C tax deductions, and billable client expenses with zero cloud API fees.">
+  <link rel="stylesheet" href="styles.css">
+  <!-- Bundled local Lucide icons for true zero-network offline reliability -->
+  <script src="assets/vendor/lucide.min.js"></script>
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="brand-section">
+        <div class="brand-logo-icon">
+          <i data-lucide="shield-check" style="width: 24px; height: 24px;"></i>
+        </div>
+        <div class="brand-titles">
+          <h1>
+            LedgerVault AI
+            <span class="brand-badge">Side Hustle Edition</span>
+          </h1>
+          <p class="brand-subtitle">A Local-First Receipt & Invoice Auditor for Freelancers</p>
+        </div>
+      </div>
+
+      <div class="header-status-panel">
+        <div class="privacy-shield-badge" id="btnOpenPrivacyInspector" title="Click to view Live Zero-Leakage Privacy Inspector">
+          <span class="pulse-dot"></span>
+          <i data-lucide="lock" style="width: 14px; height: 14px;"></i>
+          <span id="privacyStatusBadgeText">Local-First Mode</span>
+        </div>
+
+        <button class="btn btn-secondary" id="btnOpenSubmissionModal" title="Generate Hacktoberfest DEV.to Submission Draft">
+          <i data-lucide="file-text" style="width: 16px; height: 16px;"></i>
+          <span>DEV Challenge Draft</span>
+        </button>
+
+        <button class="btn btn-primary" id="btnExportAllCsv" title="Export audit-ready CSV for QuickBooks / Xero">
+          <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+          <span>Export CSV</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="app-tabs">
+      <button class="tab-btn active" data-tab="tab-scanner">
+        <i data-lucide="scan-line" style="width: 16px; height: 16px;"></i>
+        <span>Scan & Audit Workspace</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-vault">
+        <i data-lucide="database" style="width: 16px; height: 16px;"></i>
+        <span>Expense Vault</span>
+        <span class="tab-badge" id="vaultCountBadge">5</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-tax">
+        <i data-lucide="pie-chart" style="width: 16px; height: 16px;"></i>
+        <span>Schedule C Tax Insights</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-open-innovation">
+        <i data-lucide="cpu" style="width: 16px; height: 16px;"></i>
+        <span>Why Open Innovation Matters</span>
+      </button>
+    </nav>
+
+    <!-- Top KPI Grid -->
+    <section class="kpi-grid">
+      <div class="kpi-card glass" style="--card-accent: var(--accent-cyan);">
+        <div class="kpi-top">
+          <span class="kpi-label">Total Expenses Tracked</span>
+          <div class="kpi-icon"><i data-lucide="wallet" style="width: 18px; height: 18px;"></i></div>
+        </div>
+        <div class="kpi-value" id="kpiTotalExpenses">$2,050.41</div>
+        <div class="kpi-subtext">Across <span id="kpiReceiptCount">5</span> verified documents</div>
+      </div>
+
+      <div class="kpi-card glass" style="--card-accent: var(--accent-emerald);">
+        <div class="kpi-top">
+          <span class="kpi-label">IRS Deductible Amount</span>
+          <div class="kpi-icon"><i data-lucide="trending-up" style="width: 18px; height: 18px;"></i></div>
+        </div>
+        <div class="kpi-value" id="kpiDeductibleAmount" style="color: var(--accent-emerald);">$2,036.19</div>
+        <div class="kpi-subtext"><strong>99.3%</strong> qualifies for Schedule C</div>
+      </div>
+
+      <div class="kpi-card glass" style="--card-accent: var(--accent-amber);">
+        <div class="kpi-top">
+          <span class="kpi-label">Est. Tax Savings (32% Bracket*)</span>
+          <div class="kpi-icon"><i data-lucide="badge-dollar-sign" style="width: 18px; height: 18px;"></i></div>
+        </div>
+        <div class="kpi-value" id="kpiTaxSavings" style="color: var(--accent-amber);">$651.58</div>
+        <div class="kpi-subtext">*Illustrative benchmark for 32% combined SE bracket</div>
+      </div>
+
+      <div class="kpi-card glass" style="--card-accent: var(--accent-purple);">
+        <div class="kpi-top">
+          <span class="kpi-label">Reimbursable to Clients</span>
+          <div class="kpi-icon"><i data-lucide="briefcase" style="width: 18px; height: 18px;"></i></div>
+        </div>
+        <div class="kpi-value" id="kpiBillableTotal" style="color: var(--accent-purple);">$1,701.96</div>
+        <div class="kpi-subtext">Ready for invoice reimbursement</div>
+      </div>
+    </section>
+
+    <!-- TAB 1: SCANNER & AUDITOR WORKSPACE -->
+    <div class="tab-content" id="tab-scanner">
+      <div class="main-workspace-grid">
+
+        <!-- Left Column: Ingestion & Presets -->
+        <div class="ingest-card glass">
+          <div class="section-title-row">
+            <div>
+              <h2 class="section-title">
+                <i data-lucide="scan" style="color: var(--accent-cyan); width: 20px; height: 20px;"></i>
+                Receipt & Invoice Ingestion
+              </h2>
+              <p class="section-subtitle">Local offline optical recognition & entity categorization</p>
+            </div>
+            
+            <div class="ai-engine-selector" title="Select extraction engine">
+              <i data-lucide="bot" style="color: var(--accent-cyan); width: 14px; height: 14px;"></i>
+              <select id="engineSelector" class="ai-engine-select">
+                <option value="browser-local">Client-Side Parser & Tax Rules (Offline)</option>
+                <option value="ollama">Local Ollama Bridge (Llama 3.2 on localhost:11434)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Drag and Drop Zone -->
+          <div class="dropzone" id="dropzoneBox">
+            <input type="file" id="fileInput" accept="image/*,application/pdf" style="display: none;">
+            <div class="dropzone-content">
+              <div class="dropzone-icon-box">
+                <i data-lucide="upload-cloud" style="width: 28px; height: 28px;"></i>
+              </div>
+              <div class="dropzone-text">
+                <h3>Drop invoice or receipt here</h3>
+                <p>Supports PNG, JPG, WEBP, PDF &bull; Analyzed 100% on your laptop</p>
+              </div>
+              <div class="dropzone-support-chips">
+                <span class="support-chip"><i data-lucide="wifi-off" style="width: 10px; height: 10px; display: inline-block;"></i> Offline Ready</span>
+                <span class="support-chip">Zero External Egress</span>
+                <span class="support-chip">IRS Schedule C</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Direct Receipt Text Transcription Input (Audited Alternative to Pixel OCR) -->
+          <div class="paste-transcript-card" style="margin-top: 1rem; padding: 1rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; cursor: pointer;" id="toggleTranscriptHeader">
+              <span style="font-size: 0.82rem; font-weight: 700; color: var(--accent-cyan); display: flex; align-items: center; gap: 0.4rem;">
+                <i data-lucide="file-text" style="width: 14px; height: 14px;"></i>
+                Or Paste Receipt / Invoice Text Transcript
+              </span>
+              <span style="font-size: 0.72rem; color: var(--text-muted);" id="toggleTranscriptArrow">&#9652;</span>
+            </div>
+            <div id="transcriptInputCollapse" style="display: block; margin-top: 0.5rem;">
+              <textarea id="rawReceiptTextInput" rows="4" style="width: 100%; box-sizing: border-box; background: var(--bg-deep); color: #f8fafc; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.6rem; font-family: var(--font-mono); font-size: 0.75rem; resize: vertical;" placeholder="Paste raw receipt text here (e.g.&#10;CITY CAB SERVICES&#10;DATE: Oct 26, 2026&#10;Distance Fare $20.37&#10;TOTAL: $56.66)"></textarea>
+              <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;" id="btnLoadSampleText">
+                  Insert Sample Text
+                </button>
+                <button type="button" class="btn btn-primary" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;" id="btnParseRawText">
+                  Parse Transcript
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Realistic Presets -->
+          <div class="presets-section">
+            <div class="presets-heading">
+              <span>Or inspect pre-verified freelancer expense records:</span>
+              <span style="font-size: 0.72rem; color: var(--accent-cyan);">IRS Calibrated</span>
+            </div>
+            <div class="preset-cards-grid" id="presetCardsContainer">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Live AI Auditor Output -->
+        <div class="auditor-card glass" id="auditorOutputCard">
+          <!-- Will render empty state or active extracted document -->
+          <div class="empty-auditor-state" id="emptyAuditorState">
+            <div class="empty-icon-circle">
+              <i data-lucide="receipt" style="width: 32px; height: 32px;"></i>
+            </div>
+            <h3>No Document Selected</h3>
+            <p>Select a preset above or drop an invoice to run real-time local open-weight AI extraction.</p>
+          </div>
+
+          <div class="audit-active-view" id="activeAuditorView" style="display: none;">
+            <!-- Rendered dynamically via JS -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 2: EXPENSE VAULT -->
+    <div class="tab-content" id="tab-vault" style="display: none;">
+      <div class="vault-section glass" style="padding: 1.75rem; border-radius: var(--radius-xl);">
+        <div class="vault-header-bar">
+          <div>
+            <h2 class="section-title">
+              <i data-lucide="folder-lock" style="color: var(--accent-cyan); width: 20px; height: 20px;"></i>
+              Freelancer Expense & Audit Vault
+            </h2>
+            <p class="section-subtitle">Confidential store of all verified receipts, deduction classifications, and client billables</p>
+          </div>
+
+          <div class="vault-search-row">
+            <div class="search-input-wrap">
+              <i data-lucide="search" class="search-icon" style="width: 16px; height: 16px;"></i>
+              <input type="text" id="vaultSearchInput" placeholder="Search merchant, notes, items...">
+            </div>
+
+            <select id="filterClientSelect" class="filter-select">
+              <option value="ALL">All Clients</option>
+              <!-- Filled via JS -->
+            </select>
+
+            <select id="filterCategorySelect" class="filter-select">
+              <option value="ALL">All Categories</option>
+              <!-- Filled via JS -->
+            </select>
+
+            <button class="btn btn-secondary" id="btnExportVaultCsv">
+              <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px;"></i>
+              <span>Export CSV</span>
+            </button>
+            <button class="btn btn-secondary" id="btnExportVaultJson">
+              <i data-lucide="code" style="width: 15px; height: 15px;"></i>
+              <span>JSON</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="vault-table-wrap">
+          <table class="vault-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Merchant</th>
+                <th>Schedule C Tax Category</th>
+                <th>Client Attribution</th>
+                <th>Billable</th>
+                <th>Total</th>
+                <th>Deductible</th>
+                <th>Est. Saved</th>
+                <th>Audit Risk</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="vaultTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: SCHEDULE C TAX INSIGHTS -->
+    <div class="tab-content" id="tab-tax" style="display: none;">
+      <div class="glass" style="padding: 2rem; border-radius: var(--radius-xl); margin-bottom: 2rem;">
+        <h2 class="section-title" style="margin-bottom: 0.5rem;">
+          <i data-lucide="calculator" style="color: var(--accent-emerald); width: 22px; height: 22px;"></i>
+          Freelance Tax Deduction Schedule (IRS Form 1040 Schedule C)
+        </h2>
+        <p class="section-subtitle" style="margin-bottom: 1.5rem;">
+          How open-source AI automatically organizes messy freelancer expenses directly into statutory tax deduction lines.
+        </p>
+
+        <div id="taxCategoryBreakdownContainer">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: WHY OPEN INNOVATION MATTERS -->
+    <div class="tab-content" id="tab-open-innovation" style="display: none;">
+      <div class="glass" style="padding: 2.25rem; border-radius: var(--radius-xl);">
+        <h2 class="section-title" style="font-size: 1.45rem; margin-bottom: 0.5rem;">
+          <i data-lucide="heart-handshake" style="color: var(--accent-cyan); width: 24px; height: 24px;"></i>
+          Why Open Innovation Matters for LedgerVault
+        </h2>
+        <p class="section-subtitle" style="font-size: 0.95rem; margin-bottom: 2rem;">
+          Addressing the core question of Hacktoberfest Week 2: Where did an open-source approach work better than a closed API?
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+          <div class="glass" style="padding: 1.5rem; border-radius: var(--radius-lg); border-top: 3px solid var(--accent-emerald);">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+              <i data-lucide="shield" style="color: var(--accent-emerald);"></i>
+              <h3 style="font-size: 1.1rem; font-weight: 700;">1. Strict Client Confidentiality & NDAs</h3>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6;">
+              Freelancers frequently sign NDAs with enterprise clients. Sending receipts with client project names, hotel reservations, or subcontractor line items to closed commercial cloud APIs (OpenAI / Anthropic / Expensify) breaches confidentiality agreements. With an open-weight model running locally on the laptop, <strong>client data literally never touches a network wire</strong>.
+            </p>
+          </div>
+
+          <div class="glass" style="padding: 1.5rem; border-radius: var(--radius-lg); border-top: 3px solid var(--accent-cyan);">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+              <i data-lucide="coins" style="color: var(--accent-cyan);"></i>
+              <h3 style="font-size: 1.1rem; font-weight: 700;">2. Zero Marginal Cost & Sustainable Pricing</h3>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6;">
+              Multimodal cloud APIs charge $0.05 to $0.10 per invoice. A freelancer scanning 100 receipts/month burns $10/month just in raw API tokens. By running open-weight models (Llama 3.2 3B, SmolLM2, Transformers.js) locally on consumer hardware, <strong>inference cost is exactly $0.00</strong>. This makes a $29 one-time purchase or low-cost subscription wildly profitable.
+            </p>
+          </div>
+
+          <div class="glass" style="padding: 1.5rem; border-radius: var(--radius-lg); border-top: 3px solid var(--accent-purple);">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+              <i data-lucide="sliders" style="color: var(--accent-purple);"></i>
+              <h3 style="font-size: 1.1rem; font-weight: 700;">3. Model Swapping & Custom Fine-Tuning</h3>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6;">
+              Closed APIs are black boxes that deprecate models on whim. Open innovation lets builders fine-tune compact models (using Thinking Machines' Tinker) specifically on IRS tax schedules, UK VAT regulations, or German GoBD rules, or plug directly into local Ollama harnesses without vendor lock-in.
+            </p>
+          </div>
+
+          <div class="glass" style="padding: 1.5rem; border-radius: var(--radius-lg); border-top: 3px solid var(--accent-amber);">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+              <i data-lucide="plane-takeoff" style="color: var(--accent-amber);"></i>
+              <h3 style="font-size: 1.1rem; font-weight: 700;">4. Works at 35,000 Feet Without Wi-Fi</h3>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6;">
+              Digital nomads and traveling consultants do their bookkeeping on planes, trains, and remote cafes with spotty internet. LedgerVault runs completely offline on the laptop without needing a cloud handshake or active token auth.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Legal & Educational Tax Organization Disclaimer -->
+    <footer style="text-align: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border-subtle); font-size: 0.78rem; color: var(--text-dim); line-height: 1.5;">
+      <p><strong>Disclaimer:</strong> LedgerVault AI is a local expense organization and recordkeeping tool. IRS Form 1040 Schedule C classifications, deductibility percentages, and tax savings are estimates based on standard statutory rules (e.g. IRC § 274(n) 50% meals limitation) and do not constitute certified tax, accounting, or legal advice. Always consult a qualified CPA or tax professional.</p>
+    </footer>
+
+  </div> <!-- /app-container -->
+
+  <!-- MODAL 1: PRIVACY & OPEN AI INSPECTOR -->
+  <div class="modal-overlay" id="privacyModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="brand-logo-icon" style="width: 36px; height: 36px; background: rgba(16, 185, 129, 0.2); color: var(--accent-emerald);">
+            <i data-lucide="shield-alert" style="width: 20px; height: 20px;"></i>
+          </div>
+          <div>
+            <h3 style="font-size: 1.15rem; font-weight: 800;">Zero-Leakage Privacy Inspector</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">Real-time verification that no financial or client data leaves this browser</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btnClosePrivacyModal">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+        </button>
+      </div>
+
+      <div class="telemetry-grid">
+        <div class="telemetry-card">
+          <div class="metric" id="metricBytesEgress" style="color: var(--accent-emerald);">0 Requests</div>
+          <div class="label">Third-Party Network Egress</div>
+        </div>
+        <div class="telemetry-card">
+          <div class="metric" id="metricLocalInferences" style="color: var(--accent-cyan);">5</div>
+          <div class="label">Documents in Local Sandbox</div>
+        </div>
+        <div class="telemetry-card">
+          <div class="metric" id="metricCloudSaved" style="color: var(--accent-amber); font-size: 1.15rem;">Offline Mode</div>
+          <div class="label">Ollama Bridge Status</div>
+        </div>
+      </div>
+
+      <div style="background: var(--bg-deep); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-top: 1rem;">
+        <h4 style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--accent-cyan);">Active Engine Configuration:</h4>
+        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: #94a3b8; line-height: 1.6;">
+          <div>&bull; Primary Mode: <strong style="color: #fff;" id="inspectorEngineLabel">Client-Side Parser & Tax Rules (Offline)</strong></div>
+          <div>&bull; Local Ollama Status: <span id="inspectorOllamaStatus" style="color: var(--accent-amber);">Not Connected (Run `ollama run llama3.2:3b`)</span></div>
+          <div>&bull; Network Isolation: <strong style="color: var(--accent-emerald);">ENFORCED (100% self-contained local assets)</strong></div>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.5rem; text-align: right;">
+        <button class="btn btn-primary" id="btnTestLocalPing">
+          <i data-lucide="activity" style="width: 16px; height: 16px;"></i>
+          <span>Check Ollama Connection</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: HACKTOBERFEST DEV CHALLENGE DRAFT GENERATOR -->
+  <div class="modal-overlay" id="submissionModal">
+    <div class="modal-content" style="max-width: 820px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="brand-logo-icon" style="width: 36px; height: 36px; background: rgba(56, 189, 248, 0.2); color: var(--accent-cyan);">
+            <i data-lucide="award" style="width: 20px; height: 20px;"></i>
+          </div>
+          <div>
+            <h3 style="font-size: 1.15rem; font-weight: 800;">DEV.to Hacktoberfest Week 2 Submission Generator</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">Formatted according to official challenge template with DevRelay session tags</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btnCloseSubmissionModal">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+        </button>
+      </div>
+
+      <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.82rem; color: var(--text-muted);">Pre-filled with your live stats, architecture breakdown, and first user test:</span>
+        <button class="btn btn-primary" id="btnCopySubmissionMarkdown">
+          <i data-lucide="copy" style="width: 15px; height: 15px;"></i>
+          <span>Copy Post Markdown</span>
+        </button>
+      </div>
+
+      <div class="markdown-post-box" id="submissionMarkdownBox">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="sample-data.js"></script>
+  <script src="local-ai-engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
